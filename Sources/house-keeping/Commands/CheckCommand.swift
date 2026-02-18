@@ -5,7 +5,7 @@ import HouseKeeping
 struct CheckCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "check",
-        abstract: "Validate configuration file"
+        abstract: "Validate configuration file",
     )
 
     @Option(name: [.long, .customShort("c")], help: "Path to config file")

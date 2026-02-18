@@ -60,7 +60,7 @@ public struct FileIntrospector: Sendable {
             downloadURL: downloadURL,
             quarantineAgentName: quarantineInfo?.agentName,
             isQuarantined: quarantineInfo != nil,
-            uti: resourceValues.typeIdentifier
+            uti: resourceValues.typeIdentifier,
         )
     }
 

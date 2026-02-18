@@ -5,7 +5,7 @@ import HouseKeeping
 struct ListCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "list",
-        abstract: "List configured rules"
+        abstract: "List configured rules",
     )
 
     @Option(name: [.long, .customShort("c")], help: "Path to config file")

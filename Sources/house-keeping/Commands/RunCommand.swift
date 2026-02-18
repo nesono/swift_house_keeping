@@ -5,7 +5,7 @@ import HouseKeeping
 struct RunCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "run",
-        abstract: "Run a specific rule"
+        abstract: "Run a specific rule",
     )
 
     @Argument(help: "Rule name to execute")
@@ -33,7 +33,7 @@ struct RunCommand: ParsableCommand {
             throw ExitCode.failure
         }
 
-        if !matchedRule.enabled && !force {
+        if !matchedRule.enabled, !force {
             print("Error: Rule '\(rule)' is disabled. Use --force to run anyway.")
             throw ExitCode.failure
         }
@@ -95,7 +95,7 @@ struct RunCommand: ParsableCommand {
                         filePath: match.file.path,
                         ruleName: matchedRule.name,
                         actionsTaken: actions,
-                        success: success
+                        success: success,
                     ))
                 }
             }
@@ -107,7 +107,7 @@ struct RunCommand: ParsableCommand {
                     ruleName: matchedRule.name,
                     filesMatched: matches.count,
                     filesProcessed: successCount,
-                    errors: errorCount
+                    errors: errorCount,
                 ))
             }
 

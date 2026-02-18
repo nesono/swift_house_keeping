@@ -5,7 +5,7 @@ import HouseKeeping
 struct DryRunCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "dry-run",
-        abstract: "Show what would happen without making changes"
+        abstract: "Show what would happen without making changes",
     )
 
     @Argument(help: "Rule name (optional, runs all enabled rules if omitted)")

@@ -11,13 +11,13 @@ public enum ActionError: Error, CustomStringConvertible {
 
     public var description: String {
         switch self {
-        case .moveFailed(let m): return "Move failed: \(m)"
-        case .copyFailed(let m): return "Copy failed: \(m)"
-        case .trashFailed(let m): return "Trash failed: \(m)"
-        case .deleteFailed(let m): return "Delete failed: \(m)"
-        case .renameFailed(let m): return "Rename failed: \(m)"
-        case .scriptFailed(let m): return "Script failed: \(m)"
-        case .tagFailed(let m): return "Tag failed: \(m)"
+        case let .moveFailed(m): "Move failed: \(m)"
+        case let .copyFailed(m): "Copy failed: \(m)"
+        case let .trashFailed(m): "Trash failed: \(m)"
+        case let .deleteFailed(m): "Delete failed: \(m)"
+        case let .renameFailed(m): "Rename failed: \(m)"
+        case let .scriptFailed(m): "Script failed: \(m)"
+        case let .tagFailed(m): "Tag failed: \(m)"
         }
     }
 }
@@ -68,37 +68,37 @@ public struct ActionExecutor: Sendable {
 
     private func executeSingle(_ action: Action, on url: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
         switch action {
-        case .setTag(let tag):
+        case let .setTag(tag):
             return executeSetTag(tag, on: url, metadata: metadata, ruleName: ruleName)
-        case .removeTag(let tag):
+        case let .removeTag(tag):
             return executeRemoveTag(tag, on: url, metadata: metadata, ruleName: ruleName)
         case .clearTags:
             return executeClearTags(on: url, metadata: metadata, ruleName: ruleName)
-        case .setColorLabel(let label):
+        case let .setColorLabel(label):
             return executeSetColorLabel(label, on: url, metadata: metadata, ruleName: ruleName)
-        case .move(let dest):
+        case let .move(dest):
             return executeMove(to: dest, on: url, metadata: metadata, ruleName: ruleName)
-        case .copy(let dest):
+        case let .copy(dest):
             return executeCopy(to: dest, on: url, metadata: metadata, ruleName: ruleName)
-        case .trash(let doTrash):
+        case let .trash(doTrash):
             if doTrash {
                 return executeTrash(on: url, metadata: metadata, ruleName: ruleName)
             }
             return ActionResult(action: "trash", success: true, message: "Skipped (trash: false)")
-        case .delete(let doDelete):
+        case let .delete(doDelete):
             if doDelete {
                 return executeDelete(on: url, metadata: metadata, ruleName: ruleName)
             }
             return ActionResult(action: "delete", success: true, message: "Skipped (delete: false)")
-        case .rename(let renameAction):
+        case let .rename(renameAction):
             return executeRename(renameAction, on: url, metadata: metadata, ruleName: ruleName)
-        case .runScript(let script):
+        case let .runScript(script):
             return executeScript(script, on: url, metadata: metadata, ruleName: ruleName)
-        case .notify(let notifyAction):
+        case let .notify(notifyAction):
             return executeNotify(notifyAction, metadata: metadata, ruleName: ruleName)
-        case .log(let message):
+        case let .log(message):
             return executeLog(message, metadata: metadata, ruleName: ruleName)
-        case .removeQuarantine(let doRemove):
+        case let .removeQuarantine(doRemove):
             if doRemove {
                 return executeRemoveQuarantine(on: url, metadata: metadata, ruleName: ruleName)
             }
@@ -129,7 +129,7 @@ public struct ActionExecutor: Sendable {
 // MARK: - Tag Actions
 
 extension ActionExecutor {
-    private func executeSetTag(_ tag: String, on url: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
+    private func executeSetTag(_ tag: String, on url: URL, metadata: FileMetadata, ruleName _: String) -> ActionResult {
         let desc = "Set tag '\(tag)' on \(metadata.name)"
         if dryRun {
             return ActionResult(action: "set_tag", success: true, message: "[DRY RUN] \(desc)")
@@ -146,7 +146,7 @@ extension ActionExecutor {
         }
     }
 
-    private func executeRemoveTag(_ tag: String, on url: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
+    private func executeRemoveTag(_ tag: String, on url: URL, metadata: FileMetadata, ruleName _: String) -> ActionResult {
         let desc = "Remove tag '\(tag)' from \(metadata.name)"
         if dryRun {
             return ActionResult(action: "remove_tag", success: true, message: "[DRY RUN] \(desc)")
@@ -161,7 +161,7 @@ extension ActionExecutor {
         }
     }
 
-    private func executeClearTags(on url: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
+    private func executeClearTags(on url: URL, metadata: FileMetadata, ruleName _: String) -> ActionResult {
         let desc = "Clear tags from \(metadata.name)"
         if dryRun {
             return ActionResult(action: "clear_tags", success: true, message: "[DRY RUN] \(desc)")
@@ -174,7 +174,7 @@ extension ActionExecutor {
         }
     }
 
-    private func executeSetColorLabel(_ label: Int, on url: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
+    private func executeSetColorLabel(_ label: Int, on url: URL, metadata: FileMetadata, ruleName _: String) -> ActionResult {
         let desc = "Set color label \(label) on \(metadata.name)"
         if dryRun {
             return ActionResult(action: "set_color_label", success: true, message: "[DRY RUN] \(desc)")
@@ -229,7 +229,7 @@ extension ActionExecutor {
         }
     }
 
-    private func executeTrash(on url: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
+    private func executeTrash(on url: URL, metadata: FileMetadata, ruleName _: String) -> ActionResult {
         let desc = "Trash \(metadata.name)"
         if dryRun {
             return ActionResult(action: "trash", success: true, message: "[DRY RUN] \(desc)")
@@ -242,7 +242,7 @@ extension ActionExecutor {
         }
     }
 
-    private func executeDelete(on url: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
+    private func executeDelete(on url: URL, metadata: FileMetadata, ruleName _: String) -> ActionResult {
         let desc = "Delete \(metadata.name)"
         if dryRun {
             return ActionResult(action: "delete", success: true, message: "[DRY RUN] \(desc)")
@@ -255,7 +255,7 @@ extension ActionExecutor {
         }
     }
 
-    private func executeRename(_ renameAction: RenameAction, on url: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
+    private func executeRename(_ renameAction: RenameAction, on url: URL, metadata: FileMetadata, ruleName _: String) -> ActionResult {
         guard let regex = try? NSRegularExpression(pattern: renameAction.pattern) else {
             return ActionResult(action: "rename", success: false, message: "Invalid regex pattern")
         }
@@ -280,7 +280,7 @@ extension ActionExecutor {
 // MARK: - External Actions
 
 extension ActionExecutor {
-    private func executeScript(_ script: String, on url: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
+    private func executeScript(_ script: String, on _: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
         let expandedScript = expandTemplate(script, metadata: metadata, ruleName: ruleName)
         let desc = "Run script: \(expandedScript)"
 
@@ -327,9 +327,9 @@ extension ActionExecutor {
 
         // Use osascript for notifications (simpler than UNUserNotificationCenter for CLI)
         let script = """
-            display notification "\(body.replacingOccurrences(of: "\"", with: "\\\""))" \
-            with title "\(title.replacingOccurrences(of: "\"", with: "\\\""))"
-            """
+        display notification "\(body.replacingOccurrences(of: "\"", with: "\\\""))" \
+        with title "\(title.replacingOccurrences(of: "\"", with: "\\\""))"
+        """
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
         process.arguments = ["-e", script]
@@ -345,7 +345,7 @@ extension ActionExecutor {
         return ActionResult(action: "log", success: true, message: expanded)
     }
 
-    private func executeRemoveQuarantine(on url: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
+    private func executeRemoveQuarantine(on url: URL, metadata: FileMetadata, ruleName _: String) -> ActionResult {
         let desc = "Remove quarantine from \(metadata.name)"
         if dryRun {
             return ActionResult(action: "remove_quarantine", success: true, message: "[DRY RUN] \(desc)")

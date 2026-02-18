@@ -1,8 +1,8 @@
 import Foundation
-import Testing
 @testable import HouseKeeping
+import Testing
 
-@Test func testParseSimpleConfig() throws {
+@Test func parseSimpleConfig() throws {
     let yaml = """
     version: 1
     global:
@@ -34,7 +34,7 @@ import Testing
     #expect(config.rules[0].watchPaths == ["/tmp"])
 }
 
-@Test func testParseFileChangeRule() throws {
+@Test func parseFileChangeRule() throws {
     let yaml = """
     version: 1
     global:
@@ -65,7 +65,7 @@ import Testing
     #expect(config.rules[0].trigger.events == [.create, .modify])
 }
 
-@Test func testParseComplexConditions() throws {
+@Test func parseComplexConditions() throws {
     let yaml = """
     version: 1
     global:
@@ -93,21 +93,21 @@ import Testing
     #expect(config.rules.count == 1)
 }
 
-@Test func testIntervalParsing() {
+@Test func intervalParsing() {
     #expect(Trigger.parseInterval("1h") == 3600)
     #expect(Trigger.parseInterval("30m") == 1800)
     #expect(Trigger.parseInterval("1d") == 86400)
     #expect(Trigger.parseInterval("30s") == 30)
 }
 
-@Test func testSizeParsing() {
+@Test func sizeParsing() {
     #expect(SizeComparison.parseSize("500MB") == 500_000_000)
     #expect(SizeComparison.parseSize("1GB") == 1_000_000_000)
-    #expect(SizeComparison.parseSize("10KB") == 10_000)
+    #expect(SizeComparison.parseSize("10KB") == 10000)
     #expect(SizeComparison.parseSize("1024") == 1024)
 }
 
-@Test func testComparisonEvaluation() {
+@Test func comparisonEvaluation() {
     let gt = Comparison(gt: 7)
     #expect(gt.evaluate(10) == true)
     #expect(gt.evaluate(7) == false)
@@ -119,7 +119,7 @@ import Testing
     #expect(between.evaluate(10) == false)
 }
 
-@Test func testSizeComparisonEvaluation() {
+@Test func sizeComparisonEvaluation() {
     let comp = SizeComparison(gt: "10MB", lt: "500MB")
     #expect(comp.evaluate(100_000_000) == true)
     #expect(comp.evaluate(5_000_000) == false)
@@ -130,13 +130,13 @@ import Testing
     #expect(betweenComp.evaluate(5_000_000) == false)
 }
 
-@Test func testPathExpansion() {
+@Test func pathExpansion() {
     let path = Config.expandPath("~/Downloads")
     #expect(!path.hasPrefix("~"))
     #expect(path.hasSuffix("/Downloads"))
 }
 
-@Test func testTemplateExpansion() {
+@Test func templateExpansion() {
     let executor = ActionExecutor(dryRun: true)
     let metadata = FileMetadata(
         url: URL(fileURLWithPath: "/tmp/test.pdf"),
@@ -151,13 +151,13 @@ import Testing
         downloadURL: "https://example.com/test.pdf",
         quarantineAgentName: nil,
         isQuarantined: false,
-        uti: "com.adobe.pdf"
+        uti: "com.adobe.pdf",
     )
 
     let result = executor.expandTemplate(
         "File {name} ext={ext} size={size_human} tags={tags}",
         metadata: metadata,
-        ruleName: "test-rule"
+        ruleName: "test-rule",
     )
     #expect(result.contains("test.pdf"))
     #expect(result.contains("ext=pdf"))

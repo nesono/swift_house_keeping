@@ -5,7 +5,7 @@ import HouseKeeping
 struct InstallCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "install",
-        abstract: "Install launchd agent for automatic startup"
+        abstract: "Install launchd agent for automatic startup",
     )
 
     @Option(name: [.long, .customShort("c")], help: "Path to config file")
@@ -65,7 +65,7 @@ struct InstallCommand: ParsableCommand {
 struct UninstallCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "uninstall",
-        abstract: "Remove launchd agent"
+        abstract: "Remove launchd agent",
     )
 
     @Flag(name: .long, help: "Also remove config, state, and log files")

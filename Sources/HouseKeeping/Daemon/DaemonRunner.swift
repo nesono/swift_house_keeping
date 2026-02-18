@@ -15,12 +15,12 @@ public final class DaemonRunner: @unchecked Sendable {
 
     public init(config: Config, configPath: String? = nil) throws {
         self.config = config
-        self.currentConfig = config
+        currentConfig = config
         self.configPath = configPath
         let expanded = config.expandingPaths()
-        self.stateStore = try StateStore(path: expanded.global.stateFile)
-        self.logger = Logger(level: config.global.logLevel, logFile: expanded.global.logFile)
-        self.pidFilePath = NSTemporaryDirectory() + "house_keeping.pid"
+        stateStore = try StateStore(path: expanded.global.stateFile)
+        logger = Logger(level: config.global.logLevel, logFile: expanded.global.logFile)
+        pidFilePath = NSTemporaryDirectory() + "house_keeping.pid"
     }
 
     public func run() async throws {
@@ -74,7 +74,7 @@ public final class DaemonRunner: @unchecked Sendable {
             let watcher = FSEventWatcher(paths: [path]) { [weak self] events in
                 guard let self else { return }
                 for event in events {
-                    self.handleFileEvent(event, rules: rules)
+                    handleFileEvent(event, rules: rules)
                 }
             }
             watcher.start()
@@ -92,7 +92,7 @@ public final class DaemonRunner: @unchecked Sendable {
             guard let self else { return }
             for event in events {
                 if event.path == expanded {
-                    self.reloadConfig()
+                    reloadConfig()
                 }
             }
         }
@@ -118,7 +118,9 @@ public final class DaemonRunner: @unchecked Sendable {
             lock.unlock()
 
             // Restart watchers and scheduler
-            for watcher in watchers { watcher.stop() }
+            for watcher in watchers {
+                watcher.stop()
+            }
             watchers.removeAll()
             scheduler?.stop()
 
@@ -155,7 +157,7 @@ public final class DaemonRunner: @unchecked Sendable {
                         filePath: event.path,
                         ruleName: rule.name,
                         actionsTaken: actions,
-                        success: success
+                        success: success,
                     ))
 
                     for result in results {
@@ -202,7 +204,7 @@ public final class DaemonRunner: @unchecked Sendable {
                     filePath: match.file.path,
                     ruleName: rule.name,
                     actionsTaken: actions,
-                    success: success
+                    success: success,
                 ))
 
                 if success {
@@ -224,7 +226,7 @@ public final class DaemonRunner: @unchecked Sendable {
                 ruleName: rule.name,
                 filesMatched: matches.count,
                 filesProcessed: processed,
-                errors: errors
+                errors: errors,
             ))
 
             logger.info("[\(rule.name)] Completed: \(matches.count) matched, \(processed) processed, \(errors) errors")
@@ -256,7 +258,9 @@ public final class DaemonRunner: @unchecked Sendable {
 
     private func shutdown() {
         logger.info("Shutting down daemon...")
-        for watcher in watchers { watcher.stop() }
+        for watcher in watchers {
+            watcher.stop()
+        }
         scheduler?.stop()
         configWatcher?.stop()
         removePidFile()

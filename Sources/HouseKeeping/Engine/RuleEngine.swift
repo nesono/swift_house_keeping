@@ -27,7 +27,7 @@ public struct RuleEngine: Sendable {
                 if let enumerator = fm.enumerator(
                     at: url,
                     includingPropertiesForKeys: [.isDirectoryKey],
-                    options: [.skipsHiddenFiles]
+                    options: [.skipsHiddenFiles],
                 ) {
                     for case let fileURL as URL in enumerator {
                         if let match = try evaluateFile(at: fileURL, rule: expandedRule) {
@@ -39,7 +39,7 @@ public struct RuleEngine: Sendable {
                 let contents = try fm.contentsOfDirectory(
                     at: url,
                     includingPropertiesForKeys: nil,
-                    options: [.skipsHiddenFiles]
+                    options: [.skipsHiddenFiles],
                 )
                 for fileURL in contents {
                     if let match = try evaluateFile(at: fileURL, rule: expandedRule) {

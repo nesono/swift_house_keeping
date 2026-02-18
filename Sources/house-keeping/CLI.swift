@@ -17,6 +17,6 @@ struct HouseKeepingCLI: AsyncParsableCommand {
             InspectCommand.self,
             InstallCommand.self,
             UninstallCommand.self,
-        ]
+        ],
     )
 }

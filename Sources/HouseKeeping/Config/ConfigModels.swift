@@ -24,7 +24,7 @@ public struct GlobalConfig: Codable, Sendable {
     public init(
         logLevel: LogLevel = .info,
         logFile: String = "~/Library/Logs/house_keeping/house_keeping.log",
-        stateFile: String = "~/.local/share/house_keeping/state.db"
+        stateFile: String = "~/.local/share/house_keeping/state.db",
     ) {
         self.logLevel = logLevel
         self.logFile = logFile
@@ -64,7 +64,7 @@ public struct Rule: Codable, Sendable {
         watchPaths: [String] = [],
         recursive: Bool = false,
         conditions: Condition = .all([]),
-        actions: [Action] = []
+        actions: [Action] = [],
     ) {
         self.name = name
         self.description = description
@@ -206,8 +206,8 @@ public indirect enum Condition: Codable, Sendable {
             throw DecodingError.dataCorrupted(
                 DecodingError.Context(
                     codingPath: decoder.codingPath,
-                    debugDescription: "No recognized condition key found"
-                )
+                    debugDescription: "No recognized condition key found",
+                ),
             )
         }
     }
@@ -215,25 +215,25 @@ public indirect enum Condition: Codable, Sendable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
-        case .all(let children): try container.encode(children, forKey: .all)
-        case .any(let children): try container.encode(children, forKey: .any)
-        case .none(let children): try container.encode(children, forKey: .none)
-        case .not(let child): try container.encode(child, forKey: .not)
-        case .ageDays(let c): try container.encode(c, forKey: .ageDays)
-        case .ageHours(let c): try container.encode(c, forKey: .ageHours)
-        case .ageModifiedDays(let c): try container.encode(c, forKey: .ageModifiedDays)
-        case .size(let c): try container.encode(c, forKey: .size)
-        case .extension(let v): try container.encode(v, forKey: .extension)
-        case .nameMatches(let v): try container.encode(v, forKey: .nameMatches)
-        case .pathMatches(let v): try container.encode(v, forKey: .pathMatches)
-        case .hasTag(let v): try container.encode(v, forKey: .hasTag)
-        case .tagCount(let c): try container.encode(c, forKey: .tagCount)
-        case .downloadedFrom(let v): try container.encode(v, forKey: .downloadedFrom)
-        case .isQuarantined(let v): try container.encode(v, forKey: .isQuarantined)
-        case .quarantineAgent(let v): try container.encode(v, forKey: .quarantineAgent)
-        case .contentMatches(let v): try container.encode(v, forKey: .contentMatches)
-        case .isDirectory(let v): try container.encode(v, forKey: .isDirectory)
-        case .uti(let v): try container.encode(v, forKey: .uti)
+        case let .all(children): try container.encode(children, forKey: .all)
+        case let .any(children): try container.encode(children, forKey: .any)
+        case let .none(children): try container.encode(children, forKey: .none)
+        case let .not(child): try container.encode(child, forKey: .not)
+        case let .ageDays(c): try container.encode(c, forKey: .ageDays)
+        case let .ageHours(c): try container.encode(c, forKey: .ageHours)
+        case let .ageModifiedDays(c): try container.encode(c, forKey: .ageModifiedDays)
+        case let .size(c): try container.encode(c, forKey: .size)
+        case let .extension(v): try container.encode(v, forKey: .extension)
+        case let .nameMatches(v): try container.encode(v, forKey: .nameMatches)
+        case let .pathMatches(v): try container.encode(v, forKey: .pathMatches)
+        case let .hasTag(v): try container.encode(v, forKey: .hasTag)
+        case let .tagCount(c): try container.encode(c, forKey: .tagCount)
+        case let .downloadedFrom(v): try container.encode(v, forKey: .downloadedFrom)
+        case let .isQuarantined(v): try container.encode(v, forKey: .isQuarantined)
+        case let .quarantineAgent(v): try container.encode(v, forKey: .quarantineAgent)
+        case let .contentMatches(v): try container.encode(v, forKey: .contentMatches)
+        case let .isDirectory(v): try container.encode(v, forKey: .isDirectory)
+        case let .uti(v): try container.encode(v, forKey: .uti)
         }
     }
 }
@@ -299,7 +299,7 @@ public struct SizeComparison: Codable, Sendable {
             ("TB", 1_000_000_000_000),
             ("GB", 1_000_000_000),
             ("MB", 1_000_000),
-            ("KB", 1_000),
+            ("KB", 1000),
             ("B", 1),
         ]
         for (suffix, mult) in multipliers {
@@ -322,8 +322,8 @@ public enum StringListOrSingle: Codable, Sendable {
 
     public var values: [String] {
         switch self {
-        case .single(let s): return [s]
-        case .list(let arr): return arr
+        case let .single(s): [s]
+        case let .list(arr): arr
         }
     }
 
@@ -335,7 +335,7 @@ public enum StringListOrSingle: Codable, Sendable {
             self = .single(s)
         } else {
             throw DecodingError.dataCorrupted(
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Expected string or [string]")
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Expected string or [string]"),
             )
         }
     }
@@ -343,8 +343,8 @@ public enum StringListOrSingle: Codable, Sendable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
-        case .single(let s): try container.encode(s)
-        case .list(let arr): try container.encode(arr)
+        case let .single(s): try container.encode(s)
+        case let .list(arr): try container.encode(arr)
         }
     }
 }
@@ -442,7 +442,7 @@ public enum Action: Codable, Sendable {
             self = .removeQuarantine(v)
         } else {
             throw DecodingError.dataCorrupted(
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "No recognized action key found")
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "No recognized action key found"),
             )
         }
     }
@@ -450,19 +450,19 @@ public enum Action: Codable, Sendable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
-        case .setTag(let v): try container.encode(v, forKey: .setTag)
-        case .removeTag(let v): try container.encode(v, forKey: .removeTag)
+        case let .setTag(v): try container.encode(v, forKey: .setTag)
+        case let .removeTag(v): try container.encode(v, forKey: .removeTag)
         case .clearTags: try container.encode(true, forKey: .clearTags)
-        case .setColorLabel(let v): try container.encode(v, forKey: .setColorLabel)
-        case .move(let v): try container.encode(v, forKey: .move)
-        case .copy(let v): try container.encode(v, forKey: .copy)
-        case .trash(let v): try container.encode(v, forKey: .trash)
-        case .delete(let v): try container.encode(v, forKey: .delete)
-        case .rename(let v): try container.encode(v, forKey: .rename)
-        case .runScript(let v): try container.encode(v, forKey: .runScript)
-        case .notify(let v): try container.encode(v, forKey: .notify)
-        case .log(let v): try container.encode(v, forKey: .log)
-        case .removeQuarantine(let v): try container.encode(v, forKey: .removeQuarantine)
+        case let .setColorLabel(v): try container.encode(v, forKey: .setColorLabel)
+        case let .move(v): try container.encode(v, forKey: .move)
+        case let .copy(v): try container.encode(v, forKey: .copy)
+        case let .trash(v): try container.encode(v, forKey: .trash)
+        case let .delete(v): try container.encode(v, forKey: .delete)
+        case let .rename(v): try container.encode(v, forKey: .rename)
+        case let .runScript(v): try container.encode(v, forKey: .runScript)
+        case let .notify(v): try container.encode(v, forKey: .notify)
+        case let .log(v): try container.encode(v, forKey: .log)
+        case let .removeQuarantine(v): try container.encode(v, forKey: .removeQuarantine)
         }
     }
 }
@@ -489,13 +489,13 @@ public struct NotifyAction: Codable, Sendable {
 
 // MARK: - Interval Parsing
 
-extension Trigger {
-    public var intervalSeconds: TimeInterval? {
+public extension Trigger {
+    var intervalSeconds: TimeInterval? {
         guard let interval else { return nil }
         return Trigger.parseInterval(interval)
     }
 
-    public static func parseInterval(_ str: String) -> TimeInterval? {
+    static func parseInterval(_ str: String) -> TimeInterval? {
         let trimmed = str.trimmingCharacters(in: .whitespaces).lowercased()
         let suffixes: [(String, Double)] = [
             ("d", 86400), ("h", 3600), ("m", 60), ("s", 1),
@@ -514,8 +514,8 @@ extension Trigger {
 
 // MARK: - Path Expansion
 
-extension Config {
-    public func expandingPaths() -> Config {
+public extension Config {
+    func expandingPaths() -> Config {
         var config = self
         config.global.logFile = Config.expandPath(config.global.logFile)
         config.global.stateFile = Config.expandPath(config.global.stateFile)
@@ -527,7 +527,7 @@ extension Config {
         return config
     }
 
-    public static func expandPath(_ path: String) -> String {
+    static func expandPath(_ path: String) -> String {
         if path.hasPrefix("~/") {
             return NSString(string: path).expandingTildeInPath
         }

@@ -5,7 +5,7 @@ import HouseKeeping
 struct InspectCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "inspect",
-        abstract: "Inspect file metadata"
+        abstract: "Inspect file metadata",
     )
 
     @Argument(help: "File path to inspect")

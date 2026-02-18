@@ -16,18 +16,18 @@ let package = Package(
             dependencies: [
                 .product(name: "Yams", package: "Yams"),
                 .product(name: "GRDB", package: "GRDB.swift"),
-            ]
+            ],
         ),
         .executableTarget(
             name: "house-keeping",
             dependencies: [
                 "HouseKeeping",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-            ]
+            ],
         ),
         .testTarget(
             name: "HouseKeepingTests",
-            dependencies: ["HouseKeeping"]
+            dependencies: ["HouseKeeping"],
         ),
-    ]
+    ],
 )

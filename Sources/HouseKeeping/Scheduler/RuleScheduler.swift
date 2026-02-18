@@ -26,7 +26,7 @@ public final class RuleScheduler: @unchecked Sendable {
             let timer = DispatchSource.makeTimerSource(queue: queue)
             timer.schedule(
                 deadline: .now() + interval,
-                repeating: interval
+                repeating: interval,
             )
 
             let capturedRule = rule

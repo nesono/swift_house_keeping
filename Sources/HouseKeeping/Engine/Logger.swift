@@ -8,8 +8,8 @@ public final class Logger: Sendable {
     private let _lock = NSLock()
 
     public init(level: LogLevel = .info, logFile: String? = nil) {
-        self._level = level
-        self._logFile = logFile
+        _level = level
+        _logFile = logFile
 
         if let logFile {
             let dir = (logFile as NSString).deletingLastPathComponent
@@ -47,8 +47,19 @@ public final class Logger: Sendable {
         }
     }
 
-    public func debug(_ message: String) { log(.debug, message) }
-    public func info(_ message: String) { log(.info, message) }
-    public func warning(_ message: String) { log(.warning, message) }
-    public func error(_ message: String) { log(.error, message) }
+    public func debug(_ message: String) {
+        log(.debug, message)
+    }
+
+    public func info(_ message: String) {
+        log(.info, message)
+    }
+
+    public func warning(_ message: String) {
+        log(.warning, message)
+    }
+
+    public func error(_ message: String) {
+        log(.error, message)
+    }
 }

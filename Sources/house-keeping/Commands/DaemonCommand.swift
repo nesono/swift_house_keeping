@@ -5,7 +5,7 @@ import HouseKeeping
 struct DaemonCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "daemon",
-        abstract: "Run the file management daemon"
+        abstract: "Run the file management daemon",
     )
 
     @Option(name: [.long, .customShort("c")], help: "Path to config file")

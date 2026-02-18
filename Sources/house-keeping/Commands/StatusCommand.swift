@@ -5,7 +5,7 @@ import HouseKeeping
 struct StatusCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "status",
-        abstract: "Show daemon status"
+        abstract: "Show daemon status",
     )
 
     @Flag(name: .long, help: "Output as JSON")

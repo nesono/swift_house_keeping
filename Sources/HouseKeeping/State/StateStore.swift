@@ -80,7 +80,7 @@ public final class StateStore: Sendable {
             try db.create(
                 index: "idx_processed_files_path_rule",
                 on: ProcessedFile.databaseTableName,
-                columns: ["filePath", "ruleName"]
+                columns: ["filePath", "ruleName"],
             )
         }
 

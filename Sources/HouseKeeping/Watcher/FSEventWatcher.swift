@@ -6,10 +6,21 @@ public struct FileEvent: Sendable {
     public let flags: FSEventStreamEventFlags
     public let eventType: FileEventType
 
-    public var isCreated: Bool { flags & UInt32(kFSEventStreamEventFlagItemCreated) != 0 }
-    public var isModified: Bool { flags & UInt32(kFSEventStreamEventFlagItemModified) != 0 }
-    public var isRemoved: Bool { flags & UInt32(kFSEventStreamEventFlagItemRemoved) != 0 }
-    public var isRenamed: Bool { flags & UInt32(kFSEventStreamEventFlagItemRenamed) != 0 }
+    public var isCreated: Bool {
+        flags & UInt32(kFSEventStreamEventFlagItemCreated) != 0
+    }
+
+    public var isModified: Bool {
+        flags & UInt32(kFSEventStreamEventFlagItemModified) != 0
+    }
+
+    public var isRemoved: Bool {
+        flags & UInt32(kFSEventStreamEventFlagItemRemoved) != 0
+    }
+
+    public var isRenamed: Bool {
+        flags & UInt32(kFSEventStreamEventFlagItemRenamed) != 0
+    }
 }
 
 public final class FSEventWatcher: @unchecked Sendable {
@@ -22,12 +33,12 @@ public final class FSEventWatcher: @unchecked Sendable {
     public init(
         paths: [String],
         latency: CFTimeInterval = 1.0,
-        handler: @escaping @Sendable ([FileEvent]) -> Void
+        handler: @escaping @Sendable ([FileEvent]) -> Void,
     ) {
         self.paths = paths
         self.latency = latency
         self.handler = handler
-        self.queue = DispatchQueue(label: "com.house-keeping.fsevents", qos: .utility)
+        queue = DispatchQueue(label: "com.house-keeping.fsevents", qos: .utility)
     }
 
     public func start() {
@@ -37,7 +48,7 @@ public final class FSEventWatcher: @unchecked Sendable {
         context.info = rawSelf
 
         let callback: FSEventStreamCallback = {
-            (_, clientInfo, numEvents, eventPaths, eventFlags, _) in
+            _, clientInfo, numEvents, eventPaths, eventFlags, _ in
             guard let clientInfo else { return }
             let watcher = Unmanaged<FSEventWatcher>.fromOpaque(clientInfo).takeUnretainedValue()
 
@@ -45,19 +56,18 @@ public final class FSEventWatcher: @unchecked Sendable {
             let flags = Array(UnsafeBufferPointer(start: eventFlags, count: numEvents))
 
             var events: [FileEvent] = []
-            for i in 0..<numEvents {
+            for i in 0 ..< numEvents {
                 let flag = flags[i]
-                let eventType: FileEventType
-                if flag & UInt32(kFSEventStreamEventFlagItemCreated) != 0 {
-                    eventType = .create
+                let eventType: FileEventType = if flag & UInt32(kFSEventStreamEventFlagItemCreated) != 0 {
+                    .create
                 } else if flag & UInt32(kFSEventStreamEventFlagItemModified) != 0 {
-                    eventType = .modify
+                    .modify
                 } else if flag & UInt32(kFSEventStreamEventFlagItemRemoved) != 0 {
-                    eventType = .delete
+                    .delete
                 } else if flag & UInt32(kFSEventStreamEventFlagItemRenamed) != 0 {
-                    eventType = .rename
+                    .rename
                 } else {
-                    eventType = .modify
+                    .modify
                 }
                 events.append(FileEvent(path: paths[i], flags: flag, eventType: eventType))
             }
@@ -70,7 +80,7 @@ public final class FSEventWatcher: @unchecked Sendable {
         stream = FSEventStreamCreate(
             nil, callback, &context,
             cfPaths, FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
-            latency, FSEventStreamCreateFlags(streamFlags)
+            latency, FSEventStreamCreateFlags(streamFlags),
         )
 
         if let stream {

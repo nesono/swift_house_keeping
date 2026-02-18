@@ -8,12 +8,12 @@ public enum ConfigError: Error, CustomStringConvertible {
 
     public var description: String {
         switch self {
-        case .fileNotFound(let path):
-            return "Config file not found: \(path)"
-        case .parseError(let msg):
-            return "Failed to parse config: \(msg)"
-        case .validationError(let errors):
-            return "Config validation errors:\n" + errors.map { "  - \($0)" }.joined(separator: "\n")
+        case let .fileNotFound(path):
+            "Config file not found: \(path)"
+        case let .parseError(msg):
+            "Failed to parse config: \(msg)"
+        case let .validationError(errors):
+            "Config validation errors:\n" + errors.map { "  - \($0)" }.joined(separator: "\n")
         }
     }
 }
@@ -37,8 +37,7 @@ public struct ConfigLoader: Sendable {
     public func parse(_ yaml: String) throws -> Config {
         do {
             let decoder = YAMLDecoder()
-            let config = try decoder.decode(Config.self, from: yaml)
-            return config
+            return try decoder.decode(Config.self, from: yaml)
         } catch let error as DecodingError {
             throw ConfigError.parseError(describeDecodingError(error))
         } catch {
@@ -101,16 +100,16 @@ public struct ConfigLoader: Sendable {
 
     private func describeDecodingError(_ error: DecodingError) -> String {
         switch error {
-        case .keyNotFound(let key, let context):
+        case let .keyNotFound(key, context):
             let path = context.codingPath.map(\.stringValue).joined(separator: ".")
             return "Missing key '\(key.stringValue)' at \(path.isEmpty ? "root" : path)"
-        case .typeMismatch(let type, let context):
+        case let .typeMismatch(type, context):
             let path = context.codingPath.map(\.stringValue).joined(separator: ".")
             return "Type mismatch at \(path.isEmpty ? "root" : path): expected \(type) - \(context.debugDescription)"
-        case .valueNotFound(let type, let context):
+        case let .valueNotFound(type, context):
             let path = context.codingPath.map(\.stringValue).joined(separator: ".")
             return "Missing value of type \(type) at \(path.isEmpty ? "root" : path)"
-        case .dataCorrupted(let context):
+        case let .dataCorrupted(context):
             let path = context.codingPath.map(\.stringValue).joined(separator: ".")
             return "Data corrupted at \(path.isEmpty ? "root" : path): \(context.debugDescription)"
         @unknown default:

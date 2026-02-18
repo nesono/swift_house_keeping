@@ -7,40 +7,61 @@ public struct ConditionEvaluator: Sendable {
 
     public func evaluate(_ condition: Condition, metadata: FileMetadata) -> Bool {
         switch condition {
-        case .all(let children):
-            return children.allSatisfy { evaluate($0, metadata: metadata) }
-        case .any(let children):
-            return children.contains { evaluate($0, metadata: metadata) }
-        case .none(let children):
-            return !children.contains { evaluate($0, metadata: metadata) }
-        case .not(let child):
-            return !evaluate(child, metadata: metadata)
+        case let .all(children):
+            children.allSatisfy { evaluate($0, metadata: metadata) }
+        case let .any(children):
+            children.contains { evaluate($0, metadata: metadata) }
+        case let .none(children):
+            !children.contains { evaluate($0, metadata: metadata) }
+        case let .not(child):
+            !evaluate(child, metadata: metadata)
+        case .ageDays, .ageHours, .ageModifiedDays, .size:
+            evaluateNumeric(condition, metadata: metadata)
+        case .extension, .nameMatches, .pathMatches, .hasTag, .tagCount:
+            evaluateFileProperties(condition, metadata: metadata)
+        case .downloadedFrom, .isQuarantined, .quarantineAgent:
+            evaluateProvenance(condition, metadata: metadata)
+        case .contentMatches, .isDirectory, .uti:
+            evaluateContent(condition, metadata: metadata)
+        }
+    }
 
-        case .ageDays(let comp):
-            return comp.evaluate(metadata.ageDays)
-        case .ageHours(let comp):
-            return comp.evaluate(metadata.ageHours)
-        case .ageModifiedDays(let comp):
-            return comp.evaluate(metadata.ageModifiedDays)
+    private func evaluateNumeric(_ condition: Condition, metadata: FileMetadata) -> Bool {
+        switch condition {
+        case let .ageDays(comp):
+            comp.evaluate(metadata.ageDays)
+        case let .ageHours(comp):
+            comp.evaluate(metadata.ageHours)
+        case let .ageModifiedDays(comp):
+            comp.evaluate(metadata.ageModifiedDays)
+        case let .size(comp):
+            comp.evaluate(metadata.size)
+        default:
+            false
+        }
+    }
 
-        case .size(let comp):
-            return comp.evaluate(metadata.size)
-
-        case .extension(let exts):
+    private func evaluateFileProperties(_ condition: Condition, metadata: FileMetadata) -> Bool {
+        switch condition {
+        case let .extension(exts):
             let fileExt = metadata.ext.lowercased()
             return exts.values.contains { $0.lowercased() == fileExt }
-
-        case .nameMatches(let pattern):
+        case let .nameMatches(pattern):
             return matches(string: metadata.name, pattern: pattern)
-        case .pathMatches(let pattern):
+        case let .pathMatches(pattern):
             return matches(string: metadata.path, pattern: pattern)
-
-        case .hasTag(let tag):
+        case let .hasTag(tag):
             return metadata.tags.contains(tag)
-        case .tagCount(let comp):
+        case let .tagCount(comp):
             return comp.evaluate(Double(metadata.tags.count))
+        default:
+            return false
+        }
+    }
 
-        case .downloadedFrom(let source):
+    private func evaluateProvenance(_ condition: Condition, metadata: FileMetadata) -> Bool {
+        switch condition {
+        case let .downloadedFrom(source):
             guard let downloadURL = metadata.downloadURL else { return false }
             if let pattern = source.pattern {
                 return matches(string: downloadURL, pattern: pattern)
@@ -49,24 +70,29 @@ public struct ConditionEvaluator: Sendable {
                 return downloadURL.contains(domain)
             }
             return false
-
-        case .isQuarantined(let expected):
+        case let .isQuarantined(expected):
             return metadata.isQuarantined == expected
-        case .quarantineAgent(let agent):
+        case let .quarantineAgent(agent):
             return metadata.quarantineAgentName == agent
+        default:
+            return false
+        }
+    }
 
-        case .contentMatches(let match):
-            return introspector.contentMatches(
+    private func evaluateContent(_ condition: Condition, metadata: FileMetadata) -> Bool {
+        switch condition {
+        case let .contentMatches(match):
+            introspector.contentMatches(
                 url: metadata.url,
                 pattern: match.pattern,
-                maxSize: match.maxSizeBytes
+                maxSize: match.maxSizeBytes,
             )
-
-        case .isDirectory(let expected):
-            return metadata.isDirectory == expected
-
-        case .uti(let expectedUTI):
-            return metadata.uti == expectedUTI
+        case let .isDirectory(expected):
+            metadata.isDirectory == expected
+        case let .uti(expectedUTI):
+            metadata.uti == expectedUTI
+        default:
+            false
         }
     }
 
