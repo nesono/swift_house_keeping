@@ -1,0 +1,31 @@
+excluded:
+  - .build
+
+disabled_rules:
+  - trailing_comma
+  - identifier_name
+  - for_where
+  - large_tuple
+  - opening_brace
+  - closure_parameter_position
+  - force_cast
+
+line_length:
+  warning: 150
+  error: 200
+
+cyclomatic_complexity:
+  warning: 20
+  error: 30
+
+file_length:
+  warning: 600
+  error: 1000
+
+function_body_length:
+  warning: 80
+  error: 120
+
+type_body_length:
+  warning: 400
+  error: 600
