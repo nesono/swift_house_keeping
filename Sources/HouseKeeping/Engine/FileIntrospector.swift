@@ -1,4 +1,6 @@
+import CoreServices
 import Foundation
+import PDFKit
 
 public struct FileMetadata: Sendable {
     public let url: URL
@@ -118,12 +120,37 @@ public struct FileIntrospector: Sendable {
               fileSize <= maxSize
         else { return false }
 
-        guard let data = FileManager.default.contents(atPath: url.path),
-              let content = String(data: data, encoding: .utf8)
-        else { return false }
+        guard let content = extractText(from: url) else { return false }
 
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return false }
         let range = NSRange(content.startIndex..., in: content)
         return regex.firstMatch(in: content, range: range) != nil
+    }
+
+    private func extractText(from url: URL) -> String? {
+        // PDF: use PDFKit
+        if url.pathExtension.lowercased() == "pdf" {
+            return extractTextFromPDF(url: url)
+        }
+
+        // Plain text: try UTF-8
+        if let data = FileManager.default.contents(atPath: url.path),
+           let text = String(data: data, encoding: .utf8)
+        {
+            return text
+        }
+
+        // Other rich documents (docx, pages, rtf, etc.): Spotlight metadata
+        return extractTextViaSpotlight(url: url)
+    }
+
+    private func extractTextFromPDF(url: URL) -> String? {
+        guard let doc = PDFDocument(url: url) else { return nil }
+        return doc.string
+    }
+
+    private func extractTextViaSpotlight(url: URL) -> String? {
+        guard let mdItem = MDItemCreateWithURL(nil, url as CFURL) else { return nil }
+        return MDItemCopyAttribute(mdItem, kMDItemTextContent) as? String
     }
 }
