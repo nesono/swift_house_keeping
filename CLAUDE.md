@@ -29,10 +29,11 @@ Pre-commit runs on every commit: trailing-whitespace, end-of-file-fixer, check-y
 
 ## Architecture
 
-Two SPM targets:
+Three SPM targets (plus tests):
 
 - **`HouseKeeping`** (library) — all core logic, depends on Yams (YAML parsing) and GRDB (SQLite state persistence)
 - **`house-keeping`** (executable) — CLI layer using swift-argument-parser, depends on the library
+- **`HouseKeepingApp`** (executable) — native SwiftUI settings and YAML editor; bundle with `bash scripts/build-app.sh`
 
 ### Library modules (`Sources/HouseKeeping/`)
 

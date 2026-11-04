@@ -69,6 +69,16 @@ rules:
                 wait_for_log(process, log_path, "scheduled-match")
                 wait_for_log(process, log_path, "file-event-match")
 
+                # The GUI saves atomically. Verify replacement triggers a live reload.
+                replacement = root / "config.new.yaml"
+                replacement.write_text(
+                    config_path.read_text().replace("file-event-match", "reloaded-file-event-match")
+                )
+                replacement.replace(config_path)
+                wait_for_log(process, log_path, "Config reloaded successfully")
+                (watched / "after-reload.txt").write_text("test fixture\n")
+                wait_for_log(process, log_path, "reloaded-file-event-match")
+
                 process.send_signal(shutdown_signal)
                 assert process.wait(timeout=10) == 0, "Daemon did not exit cleanly"
                 assert not pid_path.exists(), "Daemon left its PID file behind"
@@ -82,7 +92,7 @@ rules:
                 process.wait()
                 if pid_path.exists() and pid_path.read_text().strip() == str(process.pid):
                     pid_path.unlink()
-        print(f"PASS: startup, scheduled rule, file event, {shutdown_signal.name}, PID cleanup")
+        print(f"PASS: startup, scheduled rule, file event, atomic config reload, {shutdown_signal.name}, PID cleanup")
 
 
 if __name__ == "__main__":

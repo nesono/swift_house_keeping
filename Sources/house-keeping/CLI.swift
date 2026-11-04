@@ -6,7 +6,7 @@ struct HouseKeepingCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "house_keeping",
         abstract: "macOS file management daemon — watches folders and acts on files based on configurable rules.",
-        version: "0.1.1",
+        version: "0.2.0",
         subcommands: [
             DaemonCommand.self,
             CheckCommand.self,

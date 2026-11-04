@@ -19,6 +19,10 @@ let package = Package(
             ],
         ),
         .executableTarget(
+            name: "HouseKeepingApp",
+            dependencies: ["HouseKeeping"],
+        ),
+        .executableTarget(
             name: "house-keeping",
             dependencies: [
                 "HouseKeeping",
