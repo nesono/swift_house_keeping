@@ -9,13 +9,26 @@ A macOS daemon that watches folders and automatically organizes files based on c
 
 ## Installation
 
+To build a macOS installer package from this checkout (requires Swift 6.2+):
+
+```bash
+bash scripts/build-pkg.sh
+```
+
+Double-click the resulting `.pkg` in Finder. It installs the command-line tool at
+`/usr/local/bin/house_keeping`. Then follow the Quick Start below to create your
+configuration and start the daemon.
+
+Alternatively, build and install the binary directly:
+
 ```bash
 # Clone and build
 git clone <repo-url> && cd house_keeping
 swift build -c release
 
 # Copy to PATH
-cp .build/release/house-keeping /usr/local/bin/house_keeping
+sudo install -d /usr/local/bin
+sudo install -m 755 .build/release/house-keeping /usr/local/bin/house_keeping
 ```
 
 ## Quick Start
@@ -82,6 +95,9 @@ house_keeping daemon --foreground
 All commands accept `--config PATH` to use a non-default config file.
 
 ## Configuration
+
+See the [configuration reference](docs/llm-config-reference.md) for a standalone
+guide you can also provide to an LLM when generating rules.
 
 ### Triggers
 
@@ -353,6 +369,20 @@ Download URL: https://example.com/report.pdf
 - The daemon hot-reloads the config file when it changes — no restart needed.
 - Set `log_level: debug` in the config to troubleshoot rule matching.
 - Use `--force` with `run` to execute a disabled rule without editing the config.
+
+## Development Checks
+
+```bash
+swift test
+swift build -c release
+python3 scripts/test-daemon.py .build/release/house-keeping
+```
+
+The subprocess regression test requires Python 3 and a stopped daemon (use
+`house_keeping uninstall` first if the LaunchAgent is installed). It uses temporary
+config, state, logs, and watched files to verify daemon startup, scheduled and
+file-change rules, and clean shutdown with both SIGINT and SIGTERM, including PID
+file cleanup.
 
 ## License
 

@@ -25,22 +25,23 @@ public final class DaemonRunner: @unchecked Sendable {
 
     public func run() async throws {
         writePidFile()
-        defer { removePidFile() }
+        defer { shutdown() }
+
+        let (shutdownEvents, continuation) = AsyncStream<Void>.makeStream()
 
         logger.info("Daemon starting with \(currentConfig.rules.count) rules")
 
         setupScheduler()
         setupWatchers()
         setupConfigWatcher()
-        setupSignalHandlers()
+        setupSignalHandlers(continuation: continuation)
 
         logger.info("Daemon running. Press Ctrl+C to stop.")
 
-        // Keep running
-        await withCheckedContinuation { (_: CheckedContinuation<Void, Never>) in
-            // Block forever - signal handlers will terminate
-            dispatchMain()
-        }
+        // Swift's async entry point already services the main dispatch queue.
+        // Suspend until a signal (or task cancellation) instead of calling
+        // dispatchMain(), which must run on the process's main thread.
+        for await _ in shutdownEvents {}
     }
 
     private func setupScheduler() {
@@ -235,18 +236,18 @@ public final class DaemonRunner: @unchecked Sendable {
         }
     }
 
-    private func setupSignalHandlers() {
+    private func setupSignalHandlers(continuation: AsyncStream<Void>.Continuation) {
         let signalSource = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
         signal(SIGINT, SIG_IGN)
-        signalSource.setEventHandler { [weak self] in
-            self?.shutdown()
+        signalSource.setEventHandler {
+            continuation.finish()
         }
         signalSource.resume()
 
         let termSource = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
         signal(SIGTERM, SIG_IGN)
-        termSource.setEventHandler { [weak self] in
-            self?.shutdown()
+        termSource.setEventHandler {
+            continuation.finish()
         }
         termSource.resume()
 
@@ -263,8 +264,11 @@ public final class DaemonRunner: @unchecked Sendable {
         }
         scheduler?.stop()
         configWatcher?.stop()
+        for source in _signalSources {
+            source.cancel()
+        }
+        _signalSources.removeAll()
         removePidFile()
-        exit(0)
     }
 
     private func writePidFile() {
