@@ -22,11 +22,14 @@ fi
 
 VERSION="${1:-$("$BINARY" --version)}"
 PKG_NAME="house-keeping-${VERSION}.pkg"
+SKIP_BUILD=1 bash "$PROJECT_ROOT/scripts/build-app.sh" "$VERSION"
 
 echo "==> Preparing package root…"
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR/root${INSTALL_PREFIX}/bin"
 mkdir -p "$BUILD_DIR/scripts"
+mkdir -p "$BUILD_DIR/root/Applications"
+ditto "$PROJECT_ROOT/.build/House Keeping.app" "$BUILD_DIR/root/Applications/House Keeping.app"
 
 # Copy binary
 cp "$BINARY" "$BUILD_DIR/root${INSTALL_PREFIX}/bin/house_keeping"
@@ -44,6 +47,7 @@ chown "$REAL_USER" "$LOG_DIR"
 
 echo ""
 echo "house_keeping installed to /usr/local/bin/house_keeping"
+echo "Open House Keeping in Applications to edit rules and enable Start at login."
 echo ""
 echo "Quick start:"
 echo "  1. Create ~/.config/house_keeping/config.yaml using the README Quick Start."
@@ -55,8 +59,16 @@ POSTINSTALL
 chmod 755 "$BUILD_DIR/scripts/postinstall"
 
 echo "==> Building package: $PKG_NAME"
+pkgbuild --analyze --root "$BUILD_DIR/root" "$BUILD_DIR/components.plist"
+# Always install to /Applications, even if a development copy is registered with Launch Services.
+if /usr/libexec/PlistBuddy -c 'Print :0:BundleIsRelocatable' "$BUILD_DIR/components.plist" >/dev/null 2>&1; then
+    /usr/libexec/PlistBuddy -c 'Set :0:BundleIsRelocatable false' "$BUILD_DIR/components.plist"
+else
+    /usr/libexec/PlistBuddy -c 'Add :0:BundleIsRelocatable bool false' "$BUILD_DIR/components.plist"
+fi
 pkgbuild \
     --root "$BUILD_DIR/root" \
+    --component-plist "$BUILD_DIR/components.plist" \
     --scripts "$BUILD_DIR/scripts" \
     --identifier "$IDENTIFIER" \
     --version "$VERSION" \

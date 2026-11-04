@@ -15,9 +15,44 @@ To build a macOS installer package from this checkout (requires Swift 6.2+):
 bash scripts/build-pkg.sh
 ```
 
-Double-click the resulting `.pkg` in Finder. It installs the command-line tool at
-`/usr/local/bin/house_keeping`. Then follow the Quick Start below to create your
-configuration and start the daemon.
+Double-click the resulting `.pkg` in Finder. It installs **House Keeping.app** in
+`/Applications` and the command-line tool at `/usr/local/bin/house_keeping`.
+Open **House Keeping** to edit your rules and enable **Start at login**, or follow
+the CLI Quick Start below.
+
+## macOS App
+
+The app has two screens:
+
+- **Rules** — a plain YAML editor with validation, Save (⌘S), Reload, and a copyable
+  example rule. Validation (⌘K) uses the same checks as the CLI. Saving preserves
+  comments and formatting, and the running daemon reloads the configuration.
+- **Settings** — start the daemon at login, choose System/Light/Dark appearance,
+  adjust editor text size, reveal the configuration in Finder, and open the log.
+
+On first launch, the editor starts with an empty configuration. Save it to create
+`~/.config/house_keeping/config.yaml`. If a LaunchAgent already uses a custom config,
+the app opens that file instead. The configuration path is shown in Settings.
+Unsaved drafts survive closing the app; **Save** applies them. If the file changes
+externally, saving is blocked: copy your edits, reload, and merge them as needed.
+
+**Start at login** starts the background daemon immediately and at future logins.
+Turning it off stops and removes the LaunchAgent. The app can be closed while the
+daemon continues running. macOS background-item controls are in System Settings →
+General → Login Items & Extensions.
+
+Build and open the app without installing a package:
+
+```bash
+bash scripts/build-app.sh
+open ".build/House Keeping.app"
+```
+
+The app bundle includes the CLI helper and an offline configuration reference in
+the Help menu. Builds are ad-hoc signed by default; set `CODESIGN_IDENTITY` to use
+your signing identity. For local debug builds, use `CONFIGURATION=debug`.
+
+### CLI-only Installation
 
 Alternatively, build and install the binary directly:
 
@@ -381,8 +416,8 @@ python3 scripts/test-daemon.py .build/release/house-keeping
 The subprocess regression test requires Python 3 and a stopped daemon (use
 `house_keeping uninstall` first if the LaunchAgent is installed). It uses temporary
 config, state, logs, and watched files to verify daemon startup, scheduled and
-file-change rules, and clean shutdown with both SIGINT and SIGTERM, including PID
-file cleanup.
+file-change rules, live reload after an atomic config save, and clean shutdown with
+both SIGINT and SIGTERM, including PID file cleanup.
 
 ## License
 
