@@ -131,6 +131,20 @@ All commands accept `--config PATH` to use a non-default config file.
 
 ## Configuration
 
+### Action notifications
+
+House Keeping automatically sends a macOS notification after each action in the
+daemon or a manual `run`, showing the rule, filename, action, and result. Failed
+actions also produce a notification. Dry runs and disabled actions (`trash: false`,
+`delete: false`, and `remove_quarantine: false`) do not send notifications.
+An explicit `notify` action sends its custom message once, without an additional
+automatic notification.
+
+Notifications use macOS's `osascript` notification support, including for CLI-only
+installations. Allow notifications for **Script Editor** in System Settings →
+Notifications if prompted; Focus and notification settings can suppress banners.
+Automatic notification delivery errors are logged and do not interrupt file actions.
+
 See the [configuration reference](docs/llm-config-reference.md) for a standalone
 guide you can also provide to an LLM when generating rules.
 
