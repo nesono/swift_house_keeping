@@ -39,10 +39,12 @@ public struct ActionResult: Sendable {
 public struct ActionExecutor: Sendable {
     public let dryRun: Bool
     public let logger: Logger
+    private let notificationSender: NotificationSender
 
-    public init(dryRun: Bool = false, logger: Logger = Logger.shared) {
+    public init(dryRun: Bool = false, logger: Logger = Logger.shared, notificationSender: NotificationSender = .system) {
         self.dryRun = dryRun
         self.logger = logger
+        self.notificationSender = notificationSender
     }
 
     public func execute(actions: [Action], on metadata: FileMetadata, ruleName: String) -> [ActionResult] {
@@ -52,6 +54,7 @@ public struct ActionExecutor: Sendable {
         for action in actions {
             let result = executeSingle(action, on: currentURL, metadata: metadata, ruleName: ruleName)
             results.append(result)
+            notifyResult(result, action: action, metadata: metadata, ruleName: ruleName)
 
             if !result.success {
                 break // Stop on first failure
@@ -64,6 +67,23 @@ public struct ActionExecutor: Sendable {
         }
 
         return results
+    }
+
+    private func notifyResult(_ result: ActionResult, action: Action, metadata: FileMetadata, ruleName: String) {
+        guard !dryRun else { return }
+        switch action {
+        case .notify, .trash(false), .delete(false), .removeQuarantine(false):
+            return
+        default:
+            break
+        }
+        let title = result.success ? "House Keeping — \(ruleName)" : "House Keeping — action failed"
+        let body = "[\(ruleName)] \(metadata.name)\n\(result.action): \(result.message)"
+        do {
+            try notificationSender.send(title: title, body: body)
+        } catch {
+            logger.warning("[\(ruleName)] Could not deliver action notification: \(error)")
+        }
     }
 
     private func executeSingle(_ action: Action, on url: URL, metadata: FileMetadata, ruleName: String) -> ActionResult {
@@ -325,18 +345,12 @@ extension ActionExecutor {
             return ActionResult(action: "notify", success: true, message: "[DRY RUN] \(desc)")
         }
 
-        // Use osascript for notifications (simpler than UNUserNotificationCenter for CLI)
-        let script = """
-        display notification "\(body.replacingOccurrences(of: "\"", with: "\\\""))" \
-        with title "\(title.replacingOccurrences(of: "\"", with: "\\\""))"
-        """
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        process.arguments = ["-e", script]
-        try? process.run()
-        process.waitUntilExit()
-
-        return ActionResult(action: "notify", success: true, message: desc)
+        do {
+            try notificationSender.send(title: title, body: body)
+            return ActionResult(action: "notify", success: true, message: desc)
+        } catch {
+            return ActionResult(action: "notify", success: false, message: "Notification failed: \(error)")
+        }
     }
 
     private func executeLog(_ message: String, metadata: FileMetadata, ruleName: String) -> ActionResult {
