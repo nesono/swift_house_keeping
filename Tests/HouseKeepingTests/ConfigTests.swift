@@ -65,6 +65,43 @@ import Testing
     #expect(config.rules[0].trigger.events == [.create, .modify])
 }
 
+@Test func parseStopProcessing() throws {
+    let yaml = """
+    version: 1
+    global:
+      log_level: info
+      log_file: /tmp/test.log
+      state_file: /tmp/test.db
+    rules:
+      - name: first
+        stop_processing: true
+        trigger:
+          type: file_change
+          events: [create]
+        watch_paths: [/tmp]
+        conditions:
+          all:
+            - extension: [pdf]
+        actions:
+          - log: "hi"
+      - name: second
+        trigger:
+          type: file_change
+          events: [create]
+        watch_paths: [/tmp]
+        conditions:
+          all:
+            - extension: [pdf]
+        actions:
+          - log: "hi"
+    """
+
+    let config = try ConfigLoader().parse(yaml)
+
+    #expect(config.rules[0].stopProcessing == true)
+    #expect(config.rules[1].stopProcessing == false)
+}
+
 @Test func parseComplexConditions() throws {
     let yaml = """
     version: 1

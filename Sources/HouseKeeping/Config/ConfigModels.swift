@@ -48,7 +48,7 @@ public struct Rule: Codable, Sendable {
     public var name: String
     public var description: String?
     public var enabled: Bool
-    public var priority: Int
+    public var stopProcessing: Bool
     public var trigger: Trigger
     public var watchPaths: [String]
     public var recursive: Bool
@@ -59,7 +59,7 @@ public struct Rule: Codable, Sendable {
         name: String,
         description: String? = nil,
         enabled: Bool = true,
-        priority: Int = 50,
+        stopProcessing: Bool = false,
         trigger: Trigger = .init(type: .schedule, interval: "1h", events: nil),
         watchPaths: [String] = [],
         recursive: Bool = false,
@@ -69,7 +69,7 @@ public struct Rule: Codable, Sendable {
         self.name = name
         self.description = description
         self.enabled = enabled
-        self.priority = priority
+        self.stopProcessing = stopProcessing
         self.trigger = trigger
         self.watchPaths = watchPaths
         self.recursive = recursive
@@ -78,7 +78,8 @@ public struct Rule: Codable, Sendable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case name, description, enabled, priority, trigger
+        case name, description, enabled, trigger
+        case stopProcessing = "stop_processing"
         case watchPaths = "watch_paths"
         case recursive, conditions, actions
     }
@@ -88,7 +89,7 @@ public struct Rule: Codable, Sendable {
         name = try container.decode(String.self, forKey: .name)
         description = try container.decodeIfPresent(String.self, forKey: .description)
         enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled) ?? true
-        priority = try container.decodeIfPresent(Int.self, forKey: .priority) ?? 50
+        stopProcessing = try container.decodeIfPresent(Bool.self, forKey: .stopProcessing) ?? false
         trigger = try container.decode(Trigger.self, forKey: .trigger)
         watchPaths = try container.decode([String].self, forKey: .watchPaths)
         recursive = try container.decodeIfPresent(Bool.self, forKey: .recursive) ?? false

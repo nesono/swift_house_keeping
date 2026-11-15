@@ -32,7 +32,8 @@ Each rule in the `rules` list has these fields:
 - name: rule-name              # Required. Unique kebab-case identifier.
   description: "Human text"    # Optional.
   enabled: true                # Optional, default true.
-  priority: 50                 # Optional, default 50. Lower = runs first.
+  stop_processing: false       # Optional, default false. File-change rules only: if true and
+                               # the rule matches a file, later rules are skipped for that event.
   recursive: false             # Optional, default false. Scan subdirectories.
   trigger: { ... }             # Required. When the rule fires.
   watch_paths:                 # Required. At least one directory path.
