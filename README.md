@@ -24,9 +24,13 @@ the CLI Quick Start below.
 
 The app has two screens:
 
-- **Rules** — a plain YAML editor with validation, Save (⌘S), Reload, and a copyable
-  example rule. Validation (⌘K) uses the same checks as the CLI. Saving preserves
-  comments and formatting, and the running daemon reloads the configuration.
+- **Rules** — a YAML editor with system-accent syntax highlighting, live diagnostics,
+  Save (⌘S), Reload, and a copyable example rule. Underlined issues show details on
+  hover; click a row in the issues list to jump to its line. Live checks report YAML
+  syntax errors, configuration errors, duplicate keys, and unknown keys with spelling
+  suggestions. Diagnostics run locally after a short typing pause—no language server
+  installation is needed. Explicit validation (⌘K) uses the same checks as the CLI.
+  Saving preserves comments and formatting, and the running daemon reloads the configuration.
 - **Settings** — start the daemon at login, choose System/Light/Dark appearance,
   adjust editor text size, reveal the configuration in Finder, and open the log.
 

@@ -40,6 +40,7 @@ Three SPM targets (plus tests):
 | Directory | Purpose |
 |-----------|---------|
 | `Config/` | `ConfigLoader` parses YAML into `ConfigModels` (rules, triggers, conditions, actions) |
+| `Editor/` | Tolerant YAML syntax tokens and source-located diagnostics for the GUI, sharing CLI validation |
 | `Engine/` | `RuleEngine` orchestrates rule evaluation; `ConditionEvaluator` matches files; `FileIntrospector` reads metadata (xattrs, Finder tags, quarantine); `Logger` handles logging |
 | `Actions/` | `ActionExecutor` runs actions (move, tag, trash, notify, etc.) with template variable expansion |
 | `Daemon/` | `DaemonRunner` — main run loop, signal handling, config hot-reload |
@@ -53,4 +54,5 @@ Each CLI subcommand (daemon, check, list, run, dry-run, status, inspect, install
 
 ## Testing
 
-Tests use Swift Testing (`import Testing`, `@Test` functions, `#expect` macros) — not XCTest. Test target: `HouseKeepingTests`.
+Tests use Swift Testing (`import Testing`, `@Test` functions, `#expect` macros) — not XCTest. `HouseKeepingTests` covers core logic;
+`HouseKeepingAppTests` covers native editor decoration and undo behavior.
