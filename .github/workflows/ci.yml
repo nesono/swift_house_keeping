@@ -16,23 +16,33 @@ jobs:
   lint:
     name: Pre-commit checks
     runs-on: macos-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install prek
-        run: brew install prek
+      - name: Install tools
+        run: brew install prek swiftlint swiftformat
       - name: Cache prek environments
         uses: actions/cache@v4
         with:
           path: ~/.cache/prek
           key: prek-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+      # The swiftlint/swiftformat hooks are language: swift and would be built
+      # from source; run the prebuilt Homebrew binaries instead.
       - name: Run hooks
+        env:
+          SKIP: swiftlint,swiftformat
         run: prek run --all-files --show-diff-on-failure
+      - name: SwiftLint
+        run: swiftlint lint --strict
+      - name: SwiftFormat
+        run: swiftformat --lint .
 
   test:
     name: Build and test
     runs-on: macos-26
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Cache SwiftPM
