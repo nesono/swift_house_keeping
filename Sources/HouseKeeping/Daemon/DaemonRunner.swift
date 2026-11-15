@@ -143,7 +143,7 @@ public final class DaemonRunner: @unchecked Sendable {
 
         guard !matchingRules.isEmpty else { return }
 
-        for rule in matchingRules.sorted(by: { $0.priority < $1.priority }) {
+        for rule in matchingRules {
             do {
                 guard FileManager.default.fileExists(atPath: event.path) else { continue }
 
@@ -167,6 +167,11 @@ public final class DaemonRunner: @unchecked Sendable {
                         } else {
                             logger.error("[\(rule.name)] \(result.message)")
                         }
+                    }
+
+                    if rule.stopProcessing {
+                        logger.debug("[\(rule.name)] stop_processing set, skipping remaining rules for \(event.path)")
+                        break
                     }
                 }
             } catch {

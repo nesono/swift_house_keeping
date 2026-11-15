@@ -54,12 +54,12 @@ struct ListCommand: ParsableCommand {
         let header = "NAME".padding(toLength: nameWidth, withPad: " ", startingAt: 0)
             + "STATUS".padding(toLength: 10, withPad: " ", startingAt: 0)
             + "TRIGGER".padding(toLength: 14, withPad: " ", startingAt: 0)
-            + "PRIORITY".padding(toLength: 10, withPad: " ", startingAt: 0)
+            + "STOP".padding(toLength: 10, withPad: " ", startingAt: 0)
             + "PATHS"
         print(header)
         print(String(repeating: "-", count: header.count + 10))
 
-        for rule in rules.sorted(by: { $0.priority < $1.priority }) {
+        for rule in rules {
             let status = rule.enabled ? "enabled" : "disabled"
             let trigger: String
             switch rule.trigger.type {
@@ -73,7 +73,7 @@ struct ListCommand: ParsableCommand {
             let line = rule.name.padding(toLength: nameWidth, withPad: " ", startingAt: 0)
                 + status.padding(toLength: 10, withPad: " ", startingAt: 0)
                 + trigger.padding(toLength: 14, withPad: " ", startingAt: 0)
-                + String(rule.priority).padding(toLength: 10, withPad: " ", startingAt: 0)
+                + (rule.stopProcessing ? "yes" : "no").padding(toLength: 10, withPad: " ", startingAt: 0)
                 + rule.watchPaths.joined(separator: ", ")
             print(line)
         }
@@ -84,7 +84,7 @@ struct ListCommand: ParsableCommand {
             var item: [String: Any] = [
                 "name": rule.name,
                 "enabled": rule.enabled,
-                "priority": rule.priority,
+                "stop_processing": rule.stopProcessing,
                 "trigger_type": rule.trigger.type.rawValue,
                 "watch_paths": rule.watchPaths,
             ]
