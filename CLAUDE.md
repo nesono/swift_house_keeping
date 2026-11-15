@@ -19,7 +19,7 @@ The executable is `house-keeping` (hyphenated); the CLI command name is `house_k
 
 ## Pre-commit Hooks
 
-Pre-commit runs on every commit: trailing-whitespace, end-of-file-fixer, check-yaml, check-merge-conflict, SwiftLint (`--strict`), and SwiftFormat. Install with `pre-commit install`.
+Pre-commit (prek or pre-commit) runs on every commit: whitespace/line-ending/YAML/merge-conflict/large-file/private-key checks, gitleaks secret scanning, actionlint for workflows, SwiftLint (`--strict`), and SwiftFormat. Install with `prek install` (or `pre-commit install`). CI (`.github/workflows/ci.yml`) runs the same hooks plus `swift build` and `swift test` on every PR.
 
 ## Linting & Formatting
 
