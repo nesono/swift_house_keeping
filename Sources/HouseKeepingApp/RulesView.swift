@@ -1,10 +1,18 @@
 import AppKit
+import HouseKeeping
 import SwiftUI
 
 struct RulesView: View {
     @Bindable var model: AppModel
     @AppStorage("editorFontSize") private var fontSize = 13.0
     @State private var showExample = false
+    @State private var diagnostics: [EditorDiagnostic] = []
+    @State private var checkedText: String?
+    @State private var editorSelection: EditorSelection?
+
+    private var currentDiagnostics: [EditorDiagnostic] {
+        checkedText == model.document?.text ? diagnostics : []
+    }
 
     private static let example = """
     rules:
@@ -27,7 +35,7 @@ struct RulesView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("A little order, automatically.")
                     .font(.title2.weight(.semibold))
-                Text("Edit your YAML configuration below. Validate it, then save to apply your rules.")
+                Text("Rules are checked as you type. Hover over an underline or click an issue for details.")
                     .foregroundStyle(.secondary)
             }
             HStack {
@@ -42,7 +50,7 @@ struct RulesView: View {
                 YAMLEditor(text: Binding(
                     get: { model.document?.text ?? "" },
                     set: { model.document?.text = $0 },
-                ), fontSize: fontSize)
+                ), fontSize: fontSize, diagnostics: currentDiagnostics, selection: editorSelection)
                     .padding(12)
                     .background(.background, in: RoundedRectangle(cornerRadius: 10))
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(.quaternary))
@@ -50,6 +58,11 @@ struct RulesView: View {
             } else {
                 ContentUnavailableView("Couldn’t open configuration", systemImage: "doc.badge.ellipsis",
                                        description: Text("Check the error below and use Reload to try again."))
+            }
+            if model.document != nil {
+                DiagnosticsView(diagnostics: currentDiagnostics, isChecking: checkedText != model.document?.text) { diagnostic in
+                    editorSelection = EditorSelection(range: diagnostic.range)
+                }
             }
             HStack {
                 Text("Drafts are kept when you close the app.")
@@ -60,28 +73,42 @@ struct RulesView: View {
             }
         }
         .padding(24)
-        .sheet(isPresented: $showExample) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Your first rule").font(.title2.bold())
-                Text("Replace “rules: []” with this example, or append the list item to your existing rules. Set enabled to true when ready.")
-                    .foregroundStyle(.secondary)
-                ScrollView {
-                    Text(Self.example)
-                        .font(.system(.callout, design: .monospaced))
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                HStack {
-                    Button("Copy Example") {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(Self.example, forType: .string)
-                    }
-                    Spacer()
-                    Button("Done") { showExample = false }.keyboardShortcut(.defaultAction)
-                }
-            }
-            .padding(24)
-            .frame(width: 600, height: 460)
+        .task(id: model.document?.text) {
+            guard let text = model.document?.text else { return }
+            do { try await Task.sleep(for: .milliseconds(350)) } catch { return }
+            let result = await Task.detached(priority: .userInitiated) {
+                ConfigDiagnostics.analyze(text)
+            }.value
+            guard !Task.isCancelled else { return }
+            diagnostics = result
+            checkedText = text
         }
+        .sheet(isPresented: $showExample) {
+            exampleSheet
+        }
+    }
+
+    private var exampleSheet: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Your first rule").font(.title2.bold())
+            Text("Replace “rules: []” with this example, or append the list item to your existing rules. Set enabled to true when ready.")
+                .foregroundStyle(.secondary)
+            ScrollView {
+                Text(Self.example)
+                    .font(.system(.callout, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            HStack {
+                Button("Copy Example") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(Self.example, forType: .string)
+                }
+                Spacer()
+                Button("Done") { showExample = false }.keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(24)
+        .frame(width: 600, height: 460)
     }
 }

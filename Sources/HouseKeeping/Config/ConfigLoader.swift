@@ -46,51 +46,59 @@ public struct ConfigLoader: Sendable {
     }
 
     public func validate(_ config: Config) -> [String] {
-        var errors: [String] = []
+        validationIssues(config).map(\.message)
+    }
+
+    func validationIssues(_ config: Config) -> [ConfigValidationIssue] {
+        var errors: [ConfigValidationIssue] = []
 
         if config.version != 1 {
-            errors.append("Unsupported config version: \(config.version) (expected 1)")
+            errors.append(.init(path: ["version"], message: "Unsupported config version: \(config.version) (expected 1)"))
         }
 
         var ruleNames = Set<String>()
         for (i, rule) in config.rules.enumerated() {
             let prefix = "rules[\(i)] (\(rule.name))"
+            let path = ["rules", String(i)]
+            func issue(_ field: [String], _ message: String) -> ConfigValidationIssue {
+                .init(path: path + field, message: "\(prefix): \(message)")
+            }
 
             if rule.name.isEmpty {
-                errors.append("\(prefix): name cannot be empty")
+                errors.append(issue(["name"], "name cannot be empty"))
             }
             if !ruleNames.insert(rule.name).inserted {
-                errors.append("\(prefix): duplicate rule name '\(rule.name)'")
+                errors.append(issue(["name"], "duplicate rule name '\(rule.name)'"))
             }
             if rule.watchPaths.isEmpty {
-                errors.append("\(prefix): watch_paths cannot be empty")
+                errors.append(issue(["watch_paths"], "watch_paths cannot be empty"))
             }
             if rule.actions.isEmpty {
-                errors.append("\(prefix): actions cannot be empty")
+                errors.append(issue(["actions"], "actions cannot be empty"))
             }
 
             // Validate trigger
             switch rule.trigger.type {
             case .schedule:
                 if rule.trigger.interval == nil {
-                    errors.append("\(prefix): schedule trigger requires 'interval'")
+                    errors.append(issue(["trigger"], "schedule trigger requires 'interval'"))
                 } else if rule.trigger.intervalSeconds == nil {
-                    errors.append("\(prefix): invalid interval format '\(rule.trigger.interval!)'")
+                    errors.append(issue(["trigger", "interval"], "invalid interval format '\(rule.trigger.interval!)'"))
                 }
             case .fileChange:
                 if rule.trigger.events == nil || rule.trigger.events!.isEmpty {
-                    errors.append("\(prefix): file_change trigger requires 'events'")
+                    errors.append(issue(["trigger"], "file_change trigger requires 'events'"))
                 }
             }
 
             // Validate watch paths exist
             let expanded = config.expandingPaths()
-            for path in expanded.rules[i].watchPaths {
+            for (index, path) in expanded.rules[i].watchPaths.enumerated() {
                 var isDir: ObjCBool = false
                 if !FileManager.default.fileExists(atPath: path, isDirectory: &isDir) {
-                    errors.append("\(prefix): watch path does not exist: \(path)")
+                    errors.append(issue(["watch_paths", String(index)], "watch path does not exist: \(path)"))
                 } else if !isDir.boolValue {
-                    errors.append("\(prefix): watch path is not a directory: \(path)")
+                    errors.append(issue(["watch_paths", String(index)], "watch path is not a directory: \(path)"))
                 }
             }
         }
@@ -98,7 +106,7 @@ public struct ConfigLoader: Sendable {
         return errors
     }
 
-    private func describeDecodingError(_ error: DecodingError) -> String {
+    func describeDecodingError(_ error: DecodingError) -> String {
         switch error {
         case let .keyNotFound(key, context):
             let path = context.codingPath.map(\.stringValue).joined(separator: ".")
@@ -116,4 +124,9 @@ public struct ConfigLoader: Sendable {
             return error.localizedDescription
         }
     }
+}
+
+struct ConfigValidationIssue {
+    let path: [String]
+    let message: String
 }

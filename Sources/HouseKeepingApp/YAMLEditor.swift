@@ -1,10 +1,18 @@
 import AppKit
+import HouseKeeping
 import SwiftUI
 
-/// Plain text with code-friendly typing: no smart quotes, substitutions, or spell checking.
+struct EditorSelection {
+    let id = UUID()
+    let range: NSRange
+}
+
+/// Syntax and diagnostic decoration uses temporary layout attributes, preserving plain-text undo and saving.
 struct YAMLEditor: NSViewRepresentable {
     @Binding var text: String
     var fontSize: Double
+    var diagnostics: [EditorDiagnostic] = []
+    var selection: EditorSelection?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(text: $text)
@@ -16,7 +24,7 @@ struct YAMLEditor: NSViewRepresentable {
         scroll.autohidesScrollers = true
         scroll.drawsBackground = false
 
-        let editor = IndentedTextView()
+        let editor = DiagnosticTextView()
         editor.delegate = context.coordinator
         editor.isRichText = false
         editor.allowsUndo = true
@@ -39,35 +47,43 @@ struct YAMLEditor: NSViewRepresentable {
         editor.string = text
         editor.font = .monospacedSystemFont(ofSize: fontSize, weight: .regular)
         scroll.documentView = editor
+        editor.decorate(diagnostics: diagnostics)
         return scroll
     }
 
     func updateNSView(_ scroll: NSScrollView, context: Context) {
-        guard let editor = scroll.documentView as? NSTextView else { return }
+        guard let editor = scroll.documentView as? DiagnosticTextView else { return }
         context.coordinator.text = $text
         if editor.string != text {
             editor.string = text
             editor.undoManager?.removeAllActions()
         }
         editor.font = .monospacedSystemFont(ofSize: fontSize, weight: .regular)
+        editor.decorate(diagnostics: diagnostics)
+        if let selection, selection.id != context.coordinator.lastSelectionID {
+            context.coordinator.lastSelectionID = selection.id
+            let length = (editor.string as NSString).length
+            let start = min(selection.range.location, length)
+            let range = NSRange(location: start, length: min(selection.range.length, length - start))
+            editor.window?.makeFirstResponder(editor)
+            editor.setSelectedRange(range)
+            editor.scrollRangeToVisible(range)
+            editor.showFindIndicator(for: range)
+        }
     }
 
     final class Coordinator: NSObject, NSTextViewDelegate {
         var text: Binding<String>
+        var lastSelectionID: UUID?
 
         init(text: Binding<String>) {
             self.text = text
         }
 
         func textDidChange(_ notification: Notification) {
-            guard let editor = notification.object as? NSTextView else { return }
+            guard let editor = notification.object as? DiagnosticTextView else { return }
             text.wrappedValue = editor.string
+            editor.decorate(diagnostics: [])
         }
-    }
-}
-
-private final class IndentedTextView: NSTextView {
-    override func insertTab(_: Any?) {
-        insertText("  ", replacementRange: selectedRange())
     }
 }

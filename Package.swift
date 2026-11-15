@@ -33,5 +33,9 @@ let package = Package(
             name: "HouseKeepingTests",
             dependencies: ["HouseKeeping"],
         ),
+        .testTarget(
+            name: "HouseKeepingAppTests",
+            dependencies: ["HouseKeepingApp", "HouseKeeping"],
+        ),
     ],
 )
