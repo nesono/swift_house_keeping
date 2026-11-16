@@ -1,4 +1,5 @@
 import CoreServices
+import CryptoKit
 import Foundation
 import PDFKit
 
@@ -152,5 +153,59 @@ public struct FileIntrospector: Sendable {
     private func extractTextViaSpotlight(url: URL) -> String? {
         guard let mdItem = MDItemCreateWithURL(nil, url as CFURL) else { return nil }
         return MDItemCopyAttribute(mdItem, kMDItemTextContent) as? String
+    }
+}
+
+// MARK: - Duplicate detection
+
+public extension FileIntrospector {
+    /// Returns the name of the file a copy like `report (1).pdf` was derived from (`report.pdf`),
+    /// or nil if the name does not carry a numeric " (N)" suffix.
+    static func originalName(forDuplicateName name: String) -> String? {
+        let ext = (name as NSString).pathExtension
+        let stem = (name as NSString).deletingPathExtension
+        guard let regex = try? NSRegularExpression(pattern: #"^(.+) \(\d+\)$"#) else { return nil }
+        let range = NSRange(stem.startIndex..., in: stem)
+        guard let match = regex.firstMatch(in: stem, range: range),
+              let baseRange = Range(match.range(at: 1), in: stem) else { return nil }
+        let base = String(stem[baseRange])
+        return ext.isEmpty ? base : "\(base).\(ext)"
+    }
+
+    /// True if the file is named like a macOS duplicate (`name (1).ext`) and a sibling
+    /// `name.ext` exists with the same size and SHA-256 hash.
+    func isDuplicate(metadata: FileMetadata) -> Bool {
+        guard !metadata.isDirectory,
+              let originalName = Self.originalName(forDuplicateName: metadata.name) else { return false }
+        let original = metadata.url.deletingLastPathComponent().appendingPathComponent(originalName)
+        var isDir: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: original.path, isDirectory: &isDir), !isDir.boolValue else {
+            return false
+        }
+        return Self.contentsEqual(metadata.url, original)
+    }
+
+    /// Files larger than this are never reported as duplicates (hashing them is too costly).
+    static let maxDuplicateHashSize: UInt64 = 1_000_000_000
+
+    private static func contentsEqual(_ a: URL, _ b: URL) -> Bool {
+        let sizeA = (try? a.resourceValues(forKeys: [.fileSizeKey]))?.fileSize
+        let sizeB = (try? b.resourceValues(forKeys: [.fileSizeKey]))?.fileSize
+        guard let sizeA, let sizeB, sizeA == sizeB, UInt64(sizeA) <= maxDuplicateHashSize else { return false }
+        guard let hashA = sha256(of: a), let hashB = sha256(of: b) else { return false }
+        return hashA == hashB
+    }
+
+    private static func sha256(of url: URL) -> SHA256.Digest? {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
+        defer { try? handle.close() }
+        var hasher = SHA256()
+        while true {
+            let chunk: Data?
+            do { chunk = try handle.read(upToCount: 1 << 20) } catch { return nil }
+            guard let data = chunk, !data.isEmpty else { break }
+            hasher.update(data: data)
+        }
+        return hasher.finalize()
     }
 }

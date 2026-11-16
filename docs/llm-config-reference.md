@@ -168,6 +168,14 @@ Searches file content via regex. Works with plain text (UTF-8), PDFs (via text e
 - uti: "com.adobe.pdf"
 ```
 
+#### Duplicate files
+
+```yaml
+- is_duplicate: true
+```
+
+True for files named like a macOS duplicate download (`report (1).pdf`) when a sibling `report.pdf` exists in the same folder with the same exact size and SHA-256 hash. Files over 1 GB are never reported as duplicates. Combine with `trash: true` to clean them up.
+
 ### Comparison operators
 
 Numeric conditions (`age_days`, `age_hours`, `age_modified_days`, `tag_count`) and size conditions all use the same comparison operators:

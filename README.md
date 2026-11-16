@@ -245,6 +245,14 @@ conditions:
 - uti: "com.adobe.pdf"
 ```
 
+**Duplicates:**
+
+```yaml
+- is_duplicate: true
+```
+
+Matches files named like a macOS duplicate download (`report (1).pdf`) when a sibling `report.pdf` exists in the same folder with the same size and SHA-256 hash. Files over 1 GB are never reported as duplicates. Combine with `trash: true` to clean them up.
+
 **Comparisons** support: `gt`, `lt`, `gte`, `lte`, `eq`.
 
 ### Actions
@@ -364,6 +372,20 @@ Use these in `log`, `notify`, `move`, `run_script`, and other string-valued acti
       - not: { has_tag: Orange }
   actions:
     - set_tag: Orange
+```
+
+### Remove duplicate downloads
+
+```yaml
+- name: Trash duplicate downloads
+  trigger: { type: file_change, events: [create] }
+  watch_paths: ["~/Downloads"]
+  conditions:
+    all:
+      - is_directory: false
+      - is_duplicate: true
+  actions:
+    - trash: true
 ```
 
 ## Running as a Launch Agent
