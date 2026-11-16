@@ -15,7 +15,7 @@ enum ConfigSchema {
             case .condition:
                 ["all", "any", "none", "not", "age_days", "age_hours", "age_modified_days", "size", "extension", "name_matches",
                  "path_matches", "has_tag", "tag_count", "downloaded_from", "is_quarantined", "quarantine_agent", "content_matches",
-                 "is_directory", "uti"]
+                 "is_directory", "uti", "is_duplicate"]
             case .action:
                 ["set_tag", "remove_tag", "clear_tags", "set_color_label", "move", "copy", "trash", "delete", "rename",
                  "run_script", "notify", "log", "remove_quarantine"]

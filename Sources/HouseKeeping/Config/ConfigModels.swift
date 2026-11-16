@@ -143,6 +143,7 @@ public indirect enum Condition: Codable, Sendable {
     case contentMatches(ContentMatch)
     case isDirectory(Bool)
     case uti(String)
+    case isDuplicate(Bool)
 
     enum CodingKeys: String, CodingKey {
         case all, any, none, not
@@ -160,6 +161,7 @@ public indirect enum Condition: Codable, Sendable {
         case contentMatches = "content_matches"
         case isDirectory = "is_directory"
         case uti
+        case isDuplicate = "is_duplicate"
     }
 
     public init(from decoder: Decoder) throws {
@@ -203,6 +205,8 @@ public indirect enum Condition: Codable, Sendable {
             self = .isDirectory(val)
         } else if let val = try container.decodeIfPresent(String.self, forKey: .uti) {
             self = .uti(val)
+        } else if let val = try container.decodeIfPresent(Bool.self, forKey: .isDuplicate) {
+            self = .isDuplicate(val)
         } else {
             throw DecodingError.dataCorrupted(
                 DecodingError.Context(
@@ -235,6 +239,7 @@ public indirect enum Condition: Codable, Sendable {
         case let .contentMatches(v): try container.encode(v, forKey: .contentMatches)
         case let .isDirectory(v): try container.encode(v, forKey: .isDirectory)
         case let .uti(v): try container.encode(v, forKey: .uti)
+        case let .isDuplicate(v): try container.encode(v, forKey: .isDuplicate)
         }
     }
 }
