@@ -15,6 +15,9 @@ To build a macOS installer package from this checkout (requires Swift 6.2+):
 bash scripts/build-pkg.sh
 ```
 
+Installing over an existing version restarts the running daemon (if Start at login is
+enabled) and reopens the app if it was open, so upgrades take effect immediately.
+
 Double-click the resulting `.pkg` in Finder. It installs **House Keeping.app** in
 `/Applications` and the command-line tool at `/usr/local/bin/house_keeping`.
 Open **House Keeping** to edit your rules and enable **Start at login**, or follow

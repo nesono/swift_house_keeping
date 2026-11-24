@@ -35,27 +35,7 @@ ditto "$PROJECT_ROOT/.build/House Keeping.app" "$BUILD_DIR/root/Applications/Hou
 cp "$BINARY" "$BUILD_DIR/root${INSTALL_PREFIX}/bin/house_keeping"
 chmod 755 "$BUILD_DIR/root${INSTALL_PREFIX}/bin/house_keeping"
 
-# Create postinstall script that sets up log directory
-cat > "$BUILD_DIR/scripts/postinstall" << 'POSTINSTALL'
-#!/usr/bin/env bash
-# Create log directory for the installing user
-REAL_USER="${SUDO_USER:-$USER}"
-REAL_HOME=$(eval echo "~$REAL_USER")
-LOG_DIR="$REAL_HOME/Library/Logs/house_keeping"
-mkdir -p "$LOG_DIR"
-chown "$REAL_USER" "$LOG_DIR"
-
-echo ""
-echo "house_keeping installed to /usr/local/bin/house_keeping"
-echo "Open House Keeping in Applications to edit rules and enable Start at login."
-echo ""
-echo "Quick start:"
-echo "  1. Create ~/.config/house_keeping/config.yaml using the README Quick Start."
-echo "  2. Validate:        house_keeping check --verbose"
-echo "  3. Preview:         house_keeping dry-run"
-echo "  4. Auto-start:      house_keeping install"
-echo ""
-POSTINSTALL
+cp "$PROJECT_ROOT/scripts/postinstall.sh" "$BUILD_DIR/scripts/postinstall"
 chmod 755 "$BUILD_DIR/scripts/postinstall"
 
 echo "==> Building package: $PKG_NAME"
