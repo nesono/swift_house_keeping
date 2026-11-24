@@ -22,6 +22,7 @@ final class AppModel {
     var isBusy = false
     var running = false
     let configPath: String
+    let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "development build"
 
     private let defaults = UserDefaults.standard
     private let draftKey: String

@@ -35,6 +35,9 @@ struct ContentView: View {
                         .foregroundStyle(model.running ? .green : .secondary)
                     Text("Once started, the daemon keeps running after you close this app.")
                         .foregroundStyle(.secondary)
+                    Text("Version \(model.appVersion)")
+                        .foregroundStyle(.tertiary)
+                        .textSelection(.enabled)
                 }
                 .font(.caption)
                 .padding(20)
