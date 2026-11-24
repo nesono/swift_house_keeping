@@ -56,6 +56,12 @@ struct SettingsView: View {
                     Button("Open Log") { model.openLogs() }
                 }
             }
+
+            Section("About") {
+                LabeledContent("Version") {
+                    Text(model.appVersion).textSelection(.enabled)
+                }
+            }
         }
         .formStyle(.grouped)
     }

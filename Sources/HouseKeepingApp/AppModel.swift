@@ -24,6 +24,7 @@ final class AppModel {
     var activity: [ActionLogEntry] = []
     var activityError: String?
     let configPath: String
+    let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "development build"
 
     private var stateStore: StateStore?
     private let defaults = UserDefaults.standard
