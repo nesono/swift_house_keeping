@@ -22,7 +22,7 @@ the CLI Quick Start below.
 
 ## macOS App
 
-The app has two screens:
+The app has three screens:
 
 - **Rules** — a YAML editor with system-accent syntax highlighting, live diagnostics,
   Save (⌘S), Reload, and a copyable example rule. Underlined issues show details on
@@ -31,6 +31,10 @@ The app has two screens:
   suggestions. Diagnostics run locally after a short typing pause—no language server
   installation is needed. Explicit validation (⌘K) uses the same checks as the CLI.
   Saving preserves comments and formatting, and the running daemon reloads the configuration.
+- **Activity** — a history of every action the daemon and `house_keeping run` have
+  performed (time, rule, action, file, result and details), newest first. Filter by
+  text or show failures only; right-click a file to reveal it in Finder or copy its path.
+  History is kept in the state database and starts from the first run of this version.
 - **Settings** — start the daemon at login, choose System/Light/Dark appearance,
   adjust editor text size, reveal the configuration in Finder, and open the log.
 

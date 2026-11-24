@@ -91,6 +91,7 @@ struct RunCommand: ParsableCommand {
                 if !dryRun {
                     let success = results.allSatisfy(\.success)
                     let actions = results.map(\.action).joined(separator: ", ")
+                    try? stateStore?.recordActions(results, filePath: match.file.path, ruleName: matchedRule.name)
                     try? stateStore?.recordProcessedFile(ProcessedFile(
                         filePath: match.file.path,
                         ruleName: matchedRule.name,

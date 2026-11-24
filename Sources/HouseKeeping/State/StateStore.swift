@@ -45,6 +45,38 @@ public struct RuleExecution: Codable, Sendable, FetchableRecord, PersistableReco
     }
 }
 
+public struct ActionLogEntry: Codable, Sendable, Identifiable, FetchableRecord, PersistableRecord {
+    public static let databaseTableName = "action_log"
+
+    public var id: Int64?
+    public var timestamp: Date
+    public var ruleName: String
+    public var filePath: String
+    public var action: String
+    public var message: String
+    public var success: Bool
+
+    public init(
+        timestamp: Date = Date(),
+        ruleName: String,
+        filePath: String,
+        action: String,
+        message: String,
+        success: Bool,
+    ) {
+        self.timestamp = timestamp
+        self.ruleName = ruleName
+        self.filePath = filePath
+        self.action = action
+        self.message = message
+        self.success = success
+    }
+
+    public mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
+    }
+}
+
 public final class StateStore: Sendable {
     private let dbPool: DatabasePool
 
@@ -84,12 +116,50 @@ public final class StateStore: Sendable {
             )
         }
 
+        migrator.registerMigration("v2-action-log") { db in
+            try db.create(table: ActionLogEntry.databaseTableName) { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("timestamp", .datetime).notNull()
+                t.column("ruleName", .text).notNull()
+                t.column("filePath", .text).notNull()
+                t.column("action", .text).notNull()
+                t.column("message", .text).notNull()
+                t.column("success", .boolean).notNull()
+            }
+            try db.create(index: "idx_action_log_timestamp", on: ActionLogEntry.databaseTableName, columns: ["timestamp"])
+        }
+
         try migrator.migrate(dbPool)
     }
 
     public func recordProcessedFile(_ record: ProcessedFile) throws {
         try dbPool.write { db in
             try record.insert(db)
+        }
+    }
+
+    public func recordActions(_ results: [ActionResult], filePath: String, ruleName: String) throws {
+        let now = Date()
+        try dbPool.write { db in
+            for result in results {
+                try ActionLogEntry(
+                    timestamp: now,
+                    ruleName: ruleName,
+                    filePath: filePath,
+                    action: result.action,
+                    message: result.message,
+                    success: result.success,
+                ).insert(db)
+            }
+        }
+    }
+
+    public func recentActions(limit: Int = 500) throws -> [ActionLogEntry] {
+        try dbPool.read { db in
+            try ActionLogEntry
+                .order(Column("timestamp").desc, Column("id").desc)
+                .limit(limit)
+                .fetchAll(db)
         }
     }
 
