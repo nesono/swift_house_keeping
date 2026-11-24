@@ -9,6 +9,7 @@ struct ContentView: View {
 
     enum Page: String, CaseIterable, Identifiable {
         case rules = "Rules"
+        case activity = "Activity"
         case settings = "Settings"
 
         var id: String {
@@ -16,7 +17,11 @@ struct ContentView: View {
         }
 
         var icon: String {
-            self == .rules ? "line.3.horizontal.decrease.circle" : "gearshape"
+            switch self {
+            case .rules: "line.3.horizontal.decrease.circle"
+            case .activity: "clock.arrow.circlepath"
+            case .settings: "gearshape"
+            }
         }
     }
 
@@ -42,10 +47,10 @@ struct ContentView: View {
             .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
         } detail: {
             VStack(spacing: 0) {
-                if selection == .settings {
-                    SettingsView(model: model)
-                } else {
-                    RulesView(model: model)
+                switch selection {
+                case .settings: SettingsView(model: model)
+                case .activity: ActivityView(model: model)
+                default: RulesView(model: model)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -74,7 +79,7 @@ struct ContentView: View {
 
     @ToolbarContentBuilder
     private var rulesToolbar: some ToolbarContent {
-        if selection != .settings {
+        if selection == nil || selection == .rules {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
                     if model.isDirty { confirmReload = true } else { model.reload() }

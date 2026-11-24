@@ -21,8 +21,11 @@ final class AppModel {
     var loginEnabled = false
     var isBusy = false
     var running = false
+    var activity: [ActionLogEntry] = []
+    var activityError: String?
     let configPath: String
 
+    private var stateStore: StateStore?
     private let defaults = UserDefaults.standard
     private let draftKey: String
     private static let agentPath = Config.expandPath("~/Library/LaunchAgents/com.house-keeping.agent.plist")
@@ -118,6 +121,20 @@ final class AppModel {
 
     func revealConfig() {
         NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: configPath)])
+    }
+
+    func refreshActivity() {
+        do {
+            if stateStore == nil {
+                let global = (try? ConfigLoader().load(from: configPath).expandingPaths().global)
+                    ?? GlobalConfig().expandingPaths()
+                stateStore = try StateStore(path: global.stateFile)
+            }
+            activity = try stateStore?.recentActions(limit: 1000) ?? []
+            activityError = nil
+        } catch {
+            activityError = "Could not read the activity history: \(error.localizedDescription)"
+        }
     }
 
     func openLogs() {

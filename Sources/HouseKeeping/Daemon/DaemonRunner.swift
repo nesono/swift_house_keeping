@@ -154,6 +154,7 @@ public final class DaemonRunner: @unchecked Sendable {
                     let success = results.allSatisfy(\.success)
                     let actions = results.map(\.action).joined(separator: ", ")
 
+                    try? stateStore.recordActions(results, filePath: event.path, ruleName: rule.name)
                     try? stateStore.recordProcessedFile(ProcessedFile(
                         filePath: event.path,
                         ruleName: rule.name,
@@ -206,6 +207,7 @@ public final class DaemonRunner: @unchecked Sendable {
                 let success = results.allSatisfy(\.success)
                 let actions = results.map(\.action).joined(separator: ", ")
 
+                try? stateStore.recordActions(results, filePath: match.file.path, ruleName: rule.name)
                 try? stateStore.recordProcessedFile(ProcessedFile(
                     filePath: match.file.path,
                     ruleName: rule.name,

@@ -520,6 +520,15 @@ public extension Trigger {
 
 // MARK: - Path Expansion
 
+public extension GlobalConfig {
+    func expandingPaths() -> GlobalConfig {
+        var global = self
+        global.logFile = Config.expandPath(logFile)
+        global.stateFile = Config.expandPath(stateFile)
+        return global
+    }
+}
+
 public extension Config {
     func expandingPaths() -> Config {
         var config = self
