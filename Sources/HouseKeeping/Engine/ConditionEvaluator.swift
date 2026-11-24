@@ -21,7 +21,7 @@ public struct ConditionEvaluator: Sendable {
             evaluateFileProperties(condition, metadata: metadata)
         case .downloadedFrom, .isQuarantined, .quarantineAgent:
             evaluateProvenance(condition, metadata: metadata)
-        case .contentMatches, .isDirectory, .uti:
+        case .contentMatches, .isDirectory, .uti, .isDuplicate:
             evaluateContent(condition, metadata: metadata)
         }
     }
@@ -91,6 +91,8 @@ public struct ConditionEvaluator: Sendable {
             metadata.isDirectory == expected
         case let .uti(expectedUTI):
             metadata.uti == expectedUTI
+        case let .isDuplicate(expected):
+            introspector.isDuplicate(metadata: metadata) == expected
         default:
             false
         }
