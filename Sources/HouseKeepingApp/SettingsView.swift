@@ -59,7 +59,7 @@ struct SettingsView: View {
 
             Section("About") {
                 LabeledContent("Version") {
-                    Text(model.appVersion).textSelection(.enabled)
+                    VersionButton(version: model.appVersion)
                 }
             }
         }
