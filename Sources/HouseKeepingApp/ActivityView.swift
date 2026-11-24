@@ -17,15 +17,7 @@ struct ActivityView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                TextField("Filter by rule, action or file", text: $search)
-                    .textFieldStyle(.roundedBorder)
-                Toggle("Failures only", isOn: $failuresOnly)
-                    .toggleStyle(.checkbox)
-            }
-            .padding(12)
-            Divider()
+        Group {
             if let error = model.activityError {
                 ContentUnavailableView("Activity unavailable", systemImage: "exclamationmark.triangle", description: Text(error))
             } else if model.activity.isEmpty {
@@ -40,12 +32,28 @@ struct ActivityView: View {
                 table
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .top, spacing: 0) { filterBar }
         .task {
             while !Task.isCancelled {
                 model.refreshActivity()
                 do { try await Task.sleep(for: .seconds(3)) } catch { break }
             }
         }
+    }
+
+    private var filterBar: some View {
+        VStack(spacing: 0) {
+            HStack {
+                TextField("Filter by rule, action or file", text: $search)
+                    .textFieldStyle(.roundedBorder)
+                Toggle("Failures only", isOn: $failuresOnly)
+                    .toggleStyle(.checkbox)
+            }
+            .padding(12)
+            Divider()
+        }
+        .background(.bar)
     }
 
     private var table: some View {
